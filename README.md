@@ -6,20 +6,21 @@ You _should_ not use it on any other setup (although it might work with Postgres
 
 ## Usage
 
-`gitlab-update.sh`
-
 The script will prompt you for the version you want to upgrade to.
 
 You _should_ only upgrade from one major to the next; refrain from skipping some.
-
 So from 8-14-stable don't go to 8-16-stable right away, but first to 8-15-stable, and _then_ 8-16-stable.
 
-1. Please make sure there are no special steps required for the update in [the respective update docs](https://gitlab.com/gitlab-org/gitlab-ce/tree/master/doc/update).
-   * If there are, apply them manually when the script is done
-2. Turn off GitLab before using the script with e.g. `service gitlab stop` or `/etc/init.d/gitlab stop` (it should work on non-Debian-based distributions)
-3. Run the script as the `git` user
+Before starting, please make sure there are no special steps required for the update in [the respective update docs](https://gitlab.com/gitlab-org/gitlab-ce/tree/master/doc/update).
+If there are, apply them manually when the script is done (or, if the changes are too grave, don't use the script at all).
+
+1. Turn off GitLab before using the script with e.g. `service gitlab stop` or `/etc/init.d/gitlab stop` (it should work on non-Debian-based distributions)
+2. Login as the `git` user
+3. Run the script `gitlab-update.sh`
 4. If applicable, update your gitlab.yml and nginx configuration files, or the init script (the script will inform you about changes)
-5. 
+5. Start gitlab
+6. ???
+7. Profit
 
 The script will automatically create a backup for you if something goes wrong.
 
