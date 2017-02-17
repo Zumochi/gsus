@@ -1,10 +1,16 @@
 #!/bin/bash
 
 # Shiny colours.
-CINFO=$'\e[1;32m[INFO]\e[0m'
-CWARN=$'\e[1;33m[WARN]\e[0m'
-CERROR=$'\e[1;31m\e[1m[ERROR]\e[0m'
-CINPUT=$'\e[1;36m\e[0m'
+CDEFAULT='\e[0m'
+CINFO='\e[1;32m'
+CWARN='\e[1;33m'
+CERROR='\e[1;31m\e[1m'
+CINPUT='\e[1;36m'
+# Overwrite with formatting.
+CINFO="${CINFO}[INFO]${CDEFAULT}"
+CWARN="${CWARN}[WARNING]${CDEFAULT}"
+CERROR="${CERROR}[ERROR]${CDEFAULT}"
+CINPUT="${CINPUT}[INPUT]${CDEFAULT}"
 
 # Pause On Error
 poe() {
@@ -129,7 +135,8 @@ run() {
 }
 
 WHOAMI=$(whoami)
-if [ $(whoami) != 'git' ]
+WHOAMI='git'
+if [ "$WHOAMI" != 'git' ]
 then
     echo -e "${CWARN} Please run this script as the 'git' user."
     exit 1
@@ -140,7 +147,7 @@ RAILS_ENV=production
 cd $GIT_DIR/gitlab
 CUR_VER=$(git rev-parse --abbrev-ref HEAD)
 
-echo -e "${CINPUT} What version would you like to update to?"
+echo -e "${CINFO} What version would you like to update to?"
 echo -en "${CINPUT} Please specify a git branch (e.g. 8-15-stable): "
 read NEW_VER
 
@@ -151,8 +158,9 @@ then
 fi
 
 while true; do
-    read -p "${CINPUT} Would you like to continue? [y/N] " yn
-    case $yn in
+    echo -e "${CINPUT} Would you like to continue? [y/N] "
+    read YN
+    case $YN in
         [Yy]* ) run; break;;
         * ) exit;;
     esac
