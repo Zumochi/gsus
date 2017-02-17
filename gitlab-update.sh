@@ -1,17 +1,23 @@
 #!/bin/bash
 
+# Shiny colours.
+CINFO=$'\e[1;32m[INFO]\e[0m'
+CWARN=$'\e[1;33m[WARN]\e[0m'
+CERROR=$'\e[1;31m\e[1m[ERROR]\e[0m'
+CINPUT=$'\e[1;36m\e[0m'
+
 # Pause On Error
 poe() {
   if [ $1 -ne 0 ]
   then
-    echo -e "\e[31m\e[1mThe last command did not return 0."
-    echo -e "\e[0mPress ^C to exit or enter to continue."
+    echo -e "${CERROR} The last command did not return 0."
+    echo -e "${CINPUT} Press ^C to exit or enter to continue."
     read
   fi
 }
 
 _1_backup() {
-    echo "Creating backup..."
+    echo -e "${CINFO} Creating backup..."
     cd $GIT_DIR/gitlab
     bundle exec rake gitlab:backup:create
     poe $?
@@ -23,7 +29,7 @@ _2_update_repo() {
 
     if ! git rev-parse -q --verify remotes/origin/$NEW_VER
     then
-        echo -e "\e[31m\e[1mSpecified branch $NEW_VER does not exist."
+        echo -e "${CERROR} Specified branch $NEW_VER does not exist."
         exit 1
     fi
 
@@ -39,25 +45,25 @@ _2_update_repo() {
 }
 
 _3_update_gitlab() {
-    echo "Updating bundles..."
+    echo -e "${CINFO} Updating bundles..."
     bundle install --without postgres development test --deployment
     poe $?
 
-    echo "Cleaning up old bundles..."
+    echo -e "${CINFO} Cleaning up old bundles..."
     bundle clean
     poe $?
 
-    echo "Running database migrations..."
+    echo -e "${CINFO} Running database migrations..."
     bundle exec rake db:migrate
     poe $?
 
-    echo "Cleanup assets and cache..."
+    echo -e "${CINFO} Cleanup assets and cache..."
     bundle exec rake assets:clean assets:precompile cache:clear
     poe $?
 }
 
 _4_update_workhorse() {
-    echo "Updating gitlab-workhorse..."
+    echo -e "${CINFO} Updating gitlab-workhorse..."
     cd $GIT_DIR/gitlab-workhorse
     git fetch
     poe $?
@@ -70,7 +76,7 @@ _4_update_workhorse() {
 }
 
 _5_update_shell() {
-    echo "Updating gitlab-shell..."
+    echo -e "${CINFO} Updating gitlab-shell..."
     cd $GIT_DIR/gitlab-shell
     git fetch
     poe $?
@@ -86,11 +92,11 @@ _6_update_config() {
     gitlab_config
     nginx_config
     init_script
-    echo "Please apply them appropriately."
+    echo -e "${CWARN} Please apply them appropriately."
 }
 
 gitlab_config() {
-    echo "Checking for GitLab configuration changes..."
+    echo -e "${CINFO} Checking for GitLab configuration changes..."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:config/gitlab.yml.example \
@@ -98,7 +104,7 @@ gitlab_config() {
 }
 
 nginx_config() {
-    echo "Checking for Nginx configuration changes..."
+    echo -e "${CINFO} Checking for Nginx configuration changes..."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:lib/support/nginx/gitlab-ssl \
@@ -106,7 +112,7 @@ nginx_config() {
 }
 
 init_script() {
-    echo "Checking for changes in init script..."
+    echo -e "${CINFO} Checking for changes in init script..."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:lib/support/init.d/gitlab \
@@ -125,7 +131,7 @@ run() {
 WHOAMI=$(whoami)
 if [ $(whoami) != 'git' ]
 then
-    echo "Please run this script as the 'git' user."
+    echo -e "${CWARN} Please run this script as the 'git' user."
     exit 1
 fi
 
@@ -134,18 +140,18 @@ RAILS_ENV=production
 cd $GIT_DIR/gitlab
 CUR_VER=$(git rev-parse --abbrev-ref HEAD)
 
-echo "What version would you like to update to?"
-echo -n "Please specify a git branch (e.g. 8-15-stable): "
+echo -e "${CINPUT} What version would you like to update to?"
+echo -en "${CINPUT} Please specify a git branch (e.g. 8-15-stable): "
 read NEW_VER
 
 if [ "$CUR_VER" = "$NEW_VER" ]
 then
-    echo "New version is same as current version. Assuming you want to patch."
+    echo -e "${CWARN} New version is same as current version. Assuming you want to patch."
     PATCH=1
 fi
 
 while true; do
-    read -p "Would you like to continue? [y/N] " yn
+    read -p "${CINPUT} Would you like to continue? [y/N] " yn
     case $yn in
         [Yy]* ) run; break;;
         * ) exit;;
