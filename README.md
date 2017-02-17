@@ -6,7 +6,7 @@ You _should_ not use it on any other setup (although it might work with Postgres
 
 ## Usage
 
-The script will prompt you for the version you want to upgrade to.
+The script will prompt you for the version you want to upgrade to. If you supply the same version as is currently installed, the script will assume you want to apply a patch update.
 
 You _should_ only upgrade from one major to the next; refrain from skipping some.
 So from 8-14-stable don't go to 8-16-stable right away, but first to 8-15-stable, and _then_ 8-16-stable.

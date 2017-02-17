@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Pause On Error
 poe() {
   if [ $1 -ne 0 ]
   then
@@ -26,9 +27,15 @@ _2_update_repo() {
         exit 1
     fi
 
-    git checkout -- db/schema.rb
-    git checkout $NEW_VER
-    poe $?
+    git checkout -- db/schema.rb Gemfile.lock
+    if $PATCH
+    then
+        git pull
+        poe $?
+    else
+        git checkout $NEW_VER
+        poe $?
+    fi
 }
 
 _3_update_gitlab() {
@@ -41,6 +48,10 @@ _3_update_gitlab() {
 
     echo "Running database migrations..."
     bundle exec rake db:migrate
+    poe $?
+
+    echo "Cleanup assets and cache"
+    bundle exec rake assets:clean assets:precompile cache:clear
     poe $?
 }
 
@@ -68,27 +79,33 @@ _5_update_shell() {
     poe $?
 }
 
-_6_gitlab_config() {
-    echo "Checking for GitLab configuration changes..."
+_6_update_config() {
+    if $PATCH; then return fi
+
+    gitlab_config
+    nginx_config
+    init_script
     echo "Please apply them appropriately."
+}
+
+gitlab_config() {
+    echo "Checking for GitLab configuration changes..."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:config/gitlab.yml.example \
         origin/$NEW_VER:config/gitlab.yml.example
 }
 
-_7_nginx_config() {
+nginx_config() {
     echo "Checking for Nginx configuration changes..."
-    echo "Please apply them appropriately."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:lib/support/nginx/gitlab-ssl \
         origin/$NEW_VER:lib/support/nginx/gitlab-ssl
 }
 
-_8_init_script() {
+init_script() {
     echo "Checking for changes in init script..."
-    echo "Please apply them appropriately."
     cd $GIT_DIR/gitlab
     git diff \
         origin/$CUR_VER:lib/support/init.d/gitlab \
@@ -101,9 +118,7 @@ run() {
     _3_update_gitlab
     _4_update_workhorse
     _5_update_shell
-    _6_gitlab_config
-    _7_nginx_config
-    _8_init_script
+    _6_update_config
 }
 
 WHOAMI=$(whoami)
@@ -121,6 +136,12 @@ CUR_VER=$(git rev-parse --abbrev-ref HEAD)
 echo "What version would you like to update to?"
 echo -n "Please specify a git branch (e.g. 8-15-stable): "
 read NEW_VER
+
+if [ $CUR_VER = $NEW_VER ]
+then
+    echo "New version is same as current version. Assuming you want to patch."
+    PATCH=1
+fi
 
 while true; do
     read -p "Would you like to continue? [y/N]" yn
