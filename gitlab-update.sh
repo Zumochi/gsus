@@ -45,12 +45,13 @@ _3_update_gitlab() {
 
     echo "Cleaning up old bundles..."
     bundle clean
+    poe $?
 
     echo "Running database migrations..."
     bundle exec rake db:migrate
     poe $?
 
-    echo "Cleanup assets and cache"
+    echo "Cleanup assets and cache..."
     bundle exec rake assets:clean assets:precompile cache:clear
     poe $?
 }
@@ -80,7 +81,7 @@ _5_update_shell() {
 }
 
 _6_update_config() {
-    if $PATCH; then return fi
+    if $PATCH; then return; fi
 
     gitlab_config
     nginx_config
@@ -137,14 +138,14 @@ echo "What version would you like to update to?"
 echo -n "Please specify a git branch (e.g. 8-15-stable): "
 read NEW_VER
 
-if [ $CUR_VER = $NEW_VER ]
+if [ "$CUR_VER" = "$NEW_VER" ]
 then
     echo "New version is same as current version. Assuming you want to patch."
     PATCH=1
 fi
 
 while true; do
-    read -p "Would you like to continue? [y/N]" yn
+    read -p "Would you like to continue? [y/N] " yn
     case $yn in
         [Yy]* ) run; break;;
         * ) exit;;
