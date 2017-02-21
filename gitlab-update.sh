@@ -158,7 +158,7 @@ then
 fi
 
 while true; do
-    echo -e "${CINPUT} Would you like to continue? [y/N] "
+    echo -en "${CINPUT} Would you like to continue? [y/N] "
     read YN
     case $YN in
         [Yy]* ) run; break;;
