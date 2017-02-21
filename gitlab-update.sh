@@ -40,7 +40,7 @@ _2_update_repo() {
     fi
 
     git checkout -- db/schema.rb Gemfile.lock
-    if $PATCH
+    if [ "$PATCH" -eq "true" ]
     then
         git pull
         poe $?
@@ -93,7 +93,7 @@ _5_update_shell() {
 }
 
 _6_update_config() {
-    if $PATCH; then return; fi
+    if [ "$PATCH" = "true" ]; then return; fi
 
     gitlab_config
     nginx_config
@@ -154,7 +154,7 @@ read NEW_VER
 if [ "$CUR_VER" = "$NEW_VER" ]
 then
     echo -e "${CWARN} New version is same as current version. Assuming you want to patch."
-    PATCH=1
+    PATCH="true"
 fi
 
 while true; do
