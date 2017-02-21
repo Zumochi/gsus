@@ -40,7 +40,7 @@ _2_update_repo() {
     fi
 
     git checkout -- db/schema.rb Gemfile.lock
-    if [ "$PATCH" -eq "true" ]
+    if [ "$PATCH" = "true" ]
     then
         git pull
         poe $?
