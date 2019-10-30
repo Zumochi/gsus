@@ -1,5 +1,9 @@
 # UNMAINTAINED
 
+You should really use GitLab's packages or Docker container instead.
+
+Feel free to use it as inspiration for your own setups, though :)
+
 # GSUS - GitLab from Source Update Script
 
 This script is purely intended for GitLab installations *from source with MySQL*. As such, it is only tested with that.
