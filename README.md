@@ -1,3 +1,5 @@
+# UNMAINTAINED
+
 # GSUS - GitLab from Source Update Script
 
 This script is purely intended for GitLab installations *from source with MySQL*. As such, it is only tested with that.
